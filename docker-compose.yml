@@ -1,0 +1,17 @@
+services:
+  ollama:
+    build: ./ollama-container
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  web:
+    build: ./web-container
+    ports:
+      - "5000:5000"
+    depends_on:
+      - ollama
+
+volumes:
+  ollama_data:
