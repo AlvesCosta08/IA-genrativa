@@ -1,109 +1,47 @@
-import logging
 from flask import Flask, render_template, request, jsonify
-import requests
+import re
+import ollama
 
 app = Flask(__name__)
 
-# Configuração básica de logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+# Detecta se a pergunta é de tema jurídico
+def eh_tema_juridico(texto):
+    palavras_chave = [
+        "divórcio", "pensão", "trabalhista", "carteira assinada", "justa causa", "indenização",
+        "direito", "advogado", "jurídico", "ação", "processo", "audiência", "penal", "imóvel",
+        "contrato", "dano moral", "aluguel", "propriedade", "guarda", "união estável", "inventário"
+    ]
+    return any(palavra in texto.lower() for palavra in palavras_chave)
 
-PALAVRAS_JURIDICAS = {
-    "trabalho", "demitido", "justa causa", "reclamação", "emprego", "carteira", "horas extras",
-    "acidente de trabalho", "rescisão", "fgts", "aviso prévio", "13º", "férias", "salário",
-    "divórcio", "separação", "casamento", "união estável", "pensão", "alimentos", "guarda",
-    "filho", "criança", "adoção", "testamento", "herança", "inventário", "custódia",
-    "acidente", "indenização", "danos", "moral", "estético", "responsabilidade", "civil",
-    "processo", "ação", "recurso", "sentença", "laudo", "perícia",
-    "consumidor", "golpe", "cobrança", "dívida", "juros", "banco", "nubank", "itau", "caixa",
-    "pix", "boleto", "sac", "procon", "contrato", "cancelamento",
-    "aposentadoria", "inss", "auxílio", "benefício", "bpc", "idoso", "doença", "invalidez",
-    "revisão", "pedágio", "tempo de contribuição",
-    "imóvel", "aluguel", "fiador", "despejo", "locação", "luz", "taxa",
-    "condomínio", "chave", "depósito",
-    "prisão", "flagrante", "habeas", "corpus", "fiança", "delação", "crime", "polícia",
-    "mei", "eireli", "contrato social", "sociedade", "falência", "empresa", "lucro",
-    "dados", "lgpd", "vazamento", "privacidade", "fake", "notícia", "internet",
-    "lei", "direito", "advogado", "juiz", "justiça", "tribunal", "código civil", "constituição"
-}
+# Gera botão de WhatsApp com mensagem pronta
+def botao_whatsapp(texto, mensagem):
+    return f'<a href="https://wa.me/5511999999999?text={mensagem}" class="whatsapp-btn" target="_blank">{texto}</a>'
 
-WHATSAPP_LINK = "https://wa.me/551130004000?text="
-
-def eh_tema_juridico(pergunta: str) -> bool:
-    pergunta_lower = pergunta.lower()
-    return any(palavra in pergunta_lower for palavra in PALAVRAS_JURIDICAS)
-
-def botao_whatsapp(texto: str, mensagem: str) -> str:
-    from requests.utils import quote
-    mensagem_url = quote(mensagem)
-    return (
-        f'<a href="{WHATSAPP_LINK}{mensagem_url}" '
-        'style="background:#1a3a6e; color:white; border:none; padding:10px 15px; '
-        'border-radius:8px; cursor:pointer; text-decoration:none; display:inline-block;">'
-        f'{texto}</a>'
-    )
-
-def perguntar(pergunta: str, modelo="tinyllama:1.1b") -> dict | None:
-    prompt = f"""
-Você é um assistente jurídico de um escritório de advocacia brasileiro.
-Responda em português do Brasil, de forma clara, educada e profissional.
-Seja direto. Evite jargões. Máximo de 3 frases.
-
-Além disso, identifique a especialidade jurídica mais adequada ao caso:
-- Direito de Família
-- Direito Trabalhista
-- Direito Previdenciário
-- Direito do Consumidor
-- Responsabilidade Civil (Indenização)
-- Direito Imobiliário
-- Outra (especifique)
-
-Formato da resposta:
-1. Resposta clara à pergunta
-2. Quebra de linha
-3. Especialidade: [Nome da área]
-
-Pergunta: "{pergunta}"
-
-Resposta:
-"""
-
-    url = "http://ollama:11434/api/generate"
-    data = {
-        "model": modelo,
-        "prompt": prompt,
-        "stream": False
-    }
-
+# Chama o modelo LLM (Ollama)
+def perguntar(pergunta):
     try:
-        response = requests.post(url, json=data, timeout=60)
-        response.raise_for_status()
-        resposta_completa = response.json().get("response", "").strip()
-        if not resposta_completa:
-            logging.warning("Resposta vazia do modelo para a pergunta: %s", pergunta)
-            return None
+        prompt = f"""Você é um advogado brasileiro. Responda de forma clara, objetiva e juridicamente correta.
+Classifique a pergunta em uma das seguintes especialidades:
+- Família
+- Trabalhista
+- Consumidor
+- Imobiliário
+- Penal
+- Trânsito
+- Cível
 
-        linhas = [l.strip() for l in resposta_completa.split("\n") if l.strip()]
-        especialidade = "Jurídico Geral"
-        corpo = []
+Pergunta: {pergunta}
 
-        for linha in linhas:
-            if linha.lower().startswith("especialidade:"):
-                especialidade = linha.split(":", 1)[1].strip()
-            else:
-                corpo.append(linha)
+Retorne exatamente neste formato JSON:
+{{
+  "especialidade": "<Área do Direito>",
+  "resposta": "<Resposta objetiva>"
+}}"""
 
-        resposta_final = "<br>".join(corpo)
-        return {
-            "resposta": resposta_final,
-            "especialidade": especialidade
-        }
-
-    except requests.RequestException as e:
-        logging.error(f"Erro na requisição para Ollama API: {e}")
+        resposta = ollama.chat(model="llama3", messages=[{"role": "user", "content": prompt}])
+        return eval(resposta["message"]["content"])  # ou use json.loads se retornar string JSON válida
     except Exception as e:
-        logging.error(f"Erro inesperado ao processar a resposta: {e}")
-
-    return None
+        return None
 
 @app.route("/")
 def index():
@@ -119,84 +57,84 @@ def chat():
 
     p = pergunta.lower()
 
-    # Respostas rápidas por palavra-chave - escopo existente
-    if any(word in p for word in ["sair", "tchau", "obrigado", "até logo", "vlw", "valeu"]):
-        return jsonify({"resposta": "Foi um prazer ajudar! Entre em contato sempre que precisar. 👋"})
-
-    if p in ["oi", "olá", "oie", "bom dia", "boa tarde", "boa noite", "hello", "e aí", "eaí"]:
-        return jsonify({
-            "resposta": (
-                "Olá! Sou o assistente jurídico do <b>Dr. Legal</b>.<br>"
-                "Posso te ajudar com dúvidas sobre:<br>"
-                "⚖️ Divórcio | 💼 Trabalho | 🚗 Acidentes | 🏠 Imóveis | 💳 Consumidor<br><br>"
-                f"{botao_whatsapp('💬 Iniciar atendimento', 'Olá, gostaria de iniciar um atendimento jurídico.')}"
-            )
-        })
-
-    if any(word in p for word in ["contato", "telefone", "email", "endereço", "localização"]):
-        return jsonify({
-            "resposta": (
-                "📞 <b>(11) 3000-4000</b><br>"
-                "📧 <b>contato@seuadvogado.com.br</b><br>"
-                "📍 <b>Av. Paulista, 1000 - São Paulo, SP</b><br><br>"
-                f"{botao_whatsapp('📲 Falar no WhatsApp', 'Olá, quero falar com um advogado agora.')}"
-            )
-        })
-
-    if any(word in p for word in ["horário", "funcionamento", "aberto", "atendimento"]):
-        return jsonify({
-            "resposta": (
-                "Atendemos de segunda a sexta, das <b>9h às 18h</b>.<br>"
-                "Casos urgentes têm <b>plantão 24h</b>.<br><br>"
-                f"{botao_whatsapp('📞 Falar com plantão jurídico', 'Preciso de ajuda urgente com um caso jurídico.')}"
-            )
-        })
-
-    if any(word in p for word in ["honorários", "preço", "quanto custa", "valor", "orçamento"]):
-        return jsonify({
-            "resposta": (
-                "Oferecemos <b>primeira consulta gratuita</b>.<br>"
-                "Honorários são combinados conforme o caso.<br><br>"
-                f"{botao_whatsapp('📅 Agendar Consulta Gratuita', 'Gostaria de agendar uma consulta gratuita.')}"
-            )
-        })
-
-    if any(word in p for word in ["divórcio", "separação", "casamento", "união estável"]):
-        return jsonify({
-            "resposta": (
-                "O divórcio pode ser:<br>"
-                "✅ <b>Consensual</b> – feito no cartório (sem filhos)<br>"
-                "✅ <b>Litigioso</b> – vai à justiça<br><br>"
-                f"{botao_whatsapp('⚖️ Falar com advogado de família', 'Tenho dúvidas sobre divórcio. Pode me ajudar?')}"
-            )
-        })
-
-    if any(word in p for word in ["demitido", "trabalho", "justa causa"]):
-        return jsonify({
-            "resposta": (
-                "Se foi demitido sem justa causa, tem direito a:<br>"
-                "✔ Aviso prévio<br>"
-                "✔ FGTS + 40%<br>"
-                "✔ Saldo de salário e férias<br><br>"
-                f"{botao_whatsapp('🧾 Falar com advogado trabalhista', 'Fui demitido e quero saber meus direitos.')}"
-            )
-        })
-
-    if any(word in p for word in ["acidente", "indenização", "danos"]):
-        return jsonify({
-            "resposta": (
-                "Você pode ter direito a indenização por danos materiais, morais ou estéticos.<br>"
-                "Preserve provas: boletim, laudos, fotos.<br><br>"
-                f"{botao_whatsapp('🚗 Falar com advogado de trânsito', 'Sofri um acidente e preciso de orientação.')}"
-            )
-        })
-
-    # Se não encontrou resposta rápida, mas é tema jurídico, chama o modelo
     if eh_tema_juridico(pergunta):
+        # Respostas rápidas
+        if any(word in p for word in ["sair", "tchau", "obrigado", "até logo", "vlw", "valeu"]):
+            return jsonify({"resposta": "Foi um prazer ajudar! Entre em contato sempre que precisar. 👋"})
+
+        if p in ["oi", "olá", "oie", "bom dia", "boa tarde", "boa noite", "hello", "e aí", "eaí"]:
+            return jsonify({
+                "resposta": (
+                    "Olá! Sou o assistente jurídico do <b>Dr. Legal</b>.<br>"
+                    "Posso te ajudar com dúvidas sobre:<br>"
+                    "⚖️ Divórcio | 💼 Trabalho | 🚗 Acidentes | 🏠 Imóveis | 💳 Consumidor<br><br>"
+                    f"{botao_whatsapp('💬 Iniciar atendimento', 'Olá, gostaria de iniciar um atendimento jurídico.')}"
+                )
+            })
+
+        if any(word in p for word in ["contato", "telefone", "email", "endereço", "localização"]):
+            return jsonify({
+                "resposta": (
+                    "📞 <b>(11) 3000-4000</b><br>"
+                    "📧 <b>contato@seuadvogado.com.br</b><br>"
+                    "📍 <b>Av. Paulista, 1000 - São Paulo, SP</b><br><br>"
+                    f"{botao_whatsapp('📲 Falar no WhatsApp', 'Olá, quero falar com um advogado agora.')}"
+                )
+            })
+
+        if any(word in p for word in ["horário", "funcionamento", "aberto", "atendimento"]):
+            return jsonify({
+                "resposta": (
+                    "Atendemos de segunda a sexta, das <b>9h às 18h</b>.<br>"
+                    "Casos urgentes têm <b>plantão 24h</b>.<br><br>"
+                    f"{botao_whatsapp('📞 Falar com plantão jurídico', 'Preciso de ajuda urgente com um caso jurídico.')}"
+                )
+            })
+
+        if any(word in p for word in ["honorários", "preço", "quanto custa", "valor", "orçamento"]):
+            return jsonify({
+                "resposta": (
+                    "Oferecemos <b>primeira consulta gratuita</b>.<br>"
+                    "Honorários são combinados conforme o caso.<br><br>"
+                    f"{botao_whatsapp('📅 Agendar Consulta Gratuita', 'Gostaria de agendar uma consulta gratuita.')}"
+                )
+            })
+
+        if any(word in p for word in ["divórcio", "separação", "casamento", "união estável"]):
+            return jsonify({
+                "resposta": (
+                    "O divórcio pode ser:<br>"
+                    "✅ <b>Consensual</b> – feito no cartório (sem filhos)<br>"
+                    "✅ <b>Litigioso</b> – vai à justiça<br><br>"
+                    f"{botao_whatsapp('⚖️ Falar com advogado de família', 'Tenho dúvidas sobre divórcio. Pode me ajudar?')}"
+                )
+            })
+
+        if any(word in p for word in ["demitido", "trabalho", "justa causa"]):
+            return jsonify({
+                "resposta": (
+                    "Se foi demitido sem justa causa, tem direito a:<br>"
+                    "✔ Aviso prévio<br>"
+                    "✔ FGTS + 40%<br>"
+                    "✔ Saldo de salário e férias<br><br>"
+                    f"{botao_whatsapp('🧾 Falar com advogado trabalhista', 'Fui demitido e quero saber meus direitos.')}"
+                )
+            })
+
+        if any(word in p for word in ["acidente", "indenização", "danos"]):
+            return jsonify({
+                "resposta": (
+                    "Você pode ter direito a indenização por danos materiais, morais ou estéticos.<br>"
+                    "Preserve provas: boletim, laudos, fotos.<br><br>"
+                    f"{botao_whatsapp('🚗 Falar com advogado de trânsito', 'Sofri um acidente e preciso de orientação.')}"
+                )
+            })
+
+        # Se não encontrou resposta direta, chama o modelo
         resultado = perguntar(pergunta)
         if resultado:
-            especialidade = resultado["especialidade"]
-            resposta = resultado["resposta"]
+            especialidade = resultado.get("especialidade", "Jurídica")
+            resposta = resultado.get("resposta", "Não consegui entender completamente, mas posso te ajudar.")
             return jsonify({
                 "resposta": (
                     f"{resposta}<br><br>📌 <b>Área indicada:</b> {especialidade}<br><br>"
@@ -212,7 +150,7 @@ def chat():
                 )
             })
 
-    # Caso geral - pergunta fora do escopo jurídico
+    # Fora do escopo jurídico
     return jsonify({
         "resposta": (
             "Essa pergunta está fora do escopo jurídico.<br><br>"
@@ -223,5 +161,4 @@ def chat():
     })
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-
+    app.run(debug=True)
