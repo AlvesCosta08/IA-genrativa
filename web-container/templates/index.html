@@ -19,16 +19,12 @@
     body {
       font-family: 'Inter', sans-serif;
       background: linear-gradient(135deg, #1a3a6e, #255c99);
-      height: 100vh;
       margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      color: #333;
+      height: 100vh;
+      overflow-x: hidden;
     }
 
-    /* Botão flutuante - agora mais moderno com efeito hover */
+    /* Botão flutuante */
     .chat-btn {
       position: fixed;
       bottom: 25px;
@@ -44,261 +40,144 @@
       justify-content: center;
       font-size: 1.8rem;
       cursor: pointer;
-      box-shadow:
-        0 4px 6px rgba(0,0,0,0.2),
-        0 8px 20px rgba(0,0,0,0.15);
-      user-select: none;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
       transition: all 0.3s ease;
-      filter: drop-shadow(0 0 3px #255c99);
     }
+
     .chat-btn:hover {
-      transform: scale(1.15);
-      filter: drop-shadow(0 0 8px #1ec6ff);
+      transform: scale(1.1);
       background: linear-gradient(145deg, #1ec6ff, #1a3a6e);
     }
 
-    /* Container do chat - modernizado com borda, sombra, e blur no fundo */
+    /* Chat container com animação */
     .chat-container {
       position: fixed;
       bottom: 100px;
       right: 25px;
       width: 380px;
       max-height: 550px;
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 22px;
-      box-shadow:
-        0 8px 20px rgba(0,0,0,0.25),
-        inset 0 0 30px rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.97);
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
       display: none;
       flex-direction: column;
       z-index: 1099;
       overflow: hidden;
-      backdrop-filter: saturate(180%) blur(12px);
-      border: 2px solid #1a3a6e;
-      animation: fadeInUp 0.4s ease forwards;
+      transition: all 0.3s ease;
+    }
+
+    .chat-container.show {
+      display: flex;
+      animation: fadeInUp 0.4s ease;
     }
 
     @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .chat-header {
       background: linear-gradient(135deg, #1a3a6e, #255c99);
       color: white;
-      padding: 1.2rem 1.5rem;
+      padding: 1rem 1.2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-weight: 600;
-      font-size: 1.2rem;
-      letter-spacing: 0.05em;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      font-size: 1.1rem;
     }
 
     .chat-header i {
       cursor: pointer;
-      user-select: none;
-      font-size: 1.3rem;
-      transition: color 0.3s ease;
+      transition: transform 0.2s ease;
     }
 
     .chat-header i:hover {
-      color: #ff6b6b;
       transform: rotate(90deg);
+      color: #ff6b6b;
     }
 
     .chat-body {
       flex: 1;
       max-height: 400px;
       overflow-y: auto;
-      padding: 1rem 1.5rem;
-      background: #f0f4fa;
+      padding: 1rem 1.2rem;
+      background: #f4f6f9;
       display: flex;
       flex-direction: column;
-      gap: 0.7rem;
-      scrollbar-width: thin;
-      scrollbar-color: #255c99 #d6ddea;
-    }
-
-    /* Scrollbar customizada para Webkit */
-    .chat-body::-webkit-scrollbar {
-      width: 8px;
-    }
-    .chat-body::-webkit-scrollbar-track {
-      background: #d6ddea;
-      border-radius: 10px;
-    }
-    .chat-body::-webkit-scrollbar-thumb {
-      background-color: #255c99;
-      border-radius: 10px;
-      border: 2px solid #d6ddea;
+      gap: 0.6rem;
     }
 
     .msg {
-      padding: 0.85rem 1.2rem;
-      border-radius: 20px;
-      font-size: 1rem;
-      max-width: 75%;
+      padding: 0.75rem 1rem;
+      border-radius: 16px;
+      font-size: 0.95rem;
+      max-width: 80%;
       word-break: break-word;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
-      line-height: 1.3;
-      transition: background-color 0.3s ease;
-      user-select: text;
     }
 
     .ia {
       background-color: #e4e9f2;
-      color: #1a3a6e;
       align-self: flex-start;
-      border-top-left-radius: 4px;
-      animation: slideInLeft 0.4s ease forwards;
+      color: #1a3a6e;
     }
 
     .voce {
-      background: linear-gradient(135deg, #1a3a6e, #255c99);
+      background-color: #1a3a6e;
       color: white;
       align-self: flex-end;
-      border-top-right-radius: 4px;
-      animation: slideInRight 0.4s ease forwards;
-      box-shadow:
-        0 2px 8px rgba(26, 58, 110, 0.5);
-    }
-
-    @keyframes slideInLeft {
-      from {
-        opacity: 0;
-        transform: translateX(-25px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-    @keyframes slideInRight {
-      from {
-        opacity: 0;
-        transform: translateX(25px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
     }
 
     .digitando {
       font-style: italic;
-      font-size: 0.9rem;
-      color: #495057;
+      font-size: 0.85rem;
+      color: #6c757d;
       padding: 0.5rem 1rem;
-      user-select: none;
-      animation: blink 1.5s infinite;
-    }
-
-    @keyframes blink {
-      0%, 100% { opacity: 0.4; }
-      50% { opacity: 1; }
+      display: none;
     }
 
     .chat-footer {
-      padding: 1rem 1.5rem;
-      border-top: 2px solid #255c99;
+      padding: 1rem 1.2rem;
       background: #f9fbfd;
-      box-shadow: inset 0 1px 3px rgba(37, 92, 153, 0.1);
+      border-top: 1px solid #dee2e6;
     }
 
-    form .input-group {
-      box-shadow: 0 1px 6px rgba(37, 92, 153, 0.15);
-      border-radius: 50px;
-      overflow: hidden;
-    }
-
-    form input.form-control {
-      border: none;
-      padding: 12px 20px;
-      font-size: 1rem;
-      border-radius: 50px 0 0 50px;
-      box-shadow: none;
-      transition: box-shadow 0.3s ease;
-    }
-
-    form input.form-control:focus {
-      outline: none;
-      box-shadow: 0 0 8px #1ec6ff;
-      background: #e9f1ff;
-    }
-
-    form button.btn-primary {
-      background: linear-gradient(135deg, #1a3a6e, #255c99);
-      border: none;
-      width: 60px;
-      font-size: 1.3rem;
-      border-radius: 0 50px 50px 0;
-      transition: background 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 6px rgba(26, 58, 110, 0.5);
-    }
-
-    form button.btn-primary:hover:not(:disabled) {
-      background: linear-gradient(135deg, #1ec6ff, #1a3a6e);
-      box-shadow: 0 4px 12px rgba(30, 198, 255, 0.7);
-    }
-
-    form button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* Botões WhatsApp modernizados */
     .wa-button {
       background-color: #25d366;
       color: white;
       border: none;
-      padding: 11px 15px;
-      font-weight: 600;
-      font-size: 1rem;
-      border-radius: 12px;
+      padding: 10px 15px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-radius: 10px;
       text-decoration: none;
-      display: inline-block;
-      transition: background 0.3s ease, transform 0.2s ease;
+      transition: background 0.3s ease;
       margin-top: 8px;
-      user-select: none;
-      box-shadow: 0 4px 8px rgba(37, 211, 102, 0.4);
+      text-align: center;
     }
 
     .wa-button:hover {
       background-color: #1ebd5a;
-      color: white;
-      transform: scale(1.05);
-      box-shadow: 0 6px 14px rgba(30, 189, 90, 0.7);
     }
   </style>
 </head>
 <body>
 
   <!-- Botão flutuante -->
-  <div class="chat-btn" id="chatBtn" title="Abrir chat" aria-label="Abrir chat">
-    <i class="fas fa-comments" aria-hidden="true"></i>
+  <div class="chat-btn" id="chatBtn" title="Abrir chat">
+    <i class="fas fa-comments"></i>
   </div>
 
   <!-- Janela do chat -->
-  <div class="chat-container d-flex" id="chatContainer" role="region" aria-label="Chat do assistente jurídico" aria-hidden="true">
+  <div class="chat-container" id="chatContainer" role="region" aria-label="Chat do assistente jurídico">
     <div class="chat-header">
       <span>Dr. Legal ⚖️</span>
-      <i class="fas fa-times" id="closeChat" title="Fechar chat" aria-label="Fechar chat" role="button" tabindex="0"></i>
+      <i class="fas fa-times" id="closeChat" title="Fechar chat"></i>
     </div>
 
-    <div class="chat-body" id="chat" tabindex="0" aria-live="polite" aria-atomic="false"></div>
+    <div class="chat-body" id="chat"></div>
 
-    <div class="digitando" id="digitando" aria-live="assertive" aria-atomic="true">Digitando...</div>
+    <div class="digitando" id="digitando">Digitando...</div>
 
     <div class="chat-footer">
       <form onsubmit="event.preventDefault(); enviar();" aria-label="Formulário de envio da pergunta">
@@ -308,28 +187,24 @@
             id="pergunta"
             class="form-control"
             placeholder="Sua dúvida jurídica..."
-            aria-label="Campo para digitar pergunta"
             autocomplete="off"
             required
-            aria-required="true"
           />
           <button class="btn btn-primary" id="btnEnviar" aria-label="Enviar pergunta">➤</button>
         </div>
 
-        <div class="d-flex justify-content-between" role="group" aria-label="Botões para contato via WhatsApp">
+        <div class="d-flex justify-content-between">
           <a
-            class="wa-button w-100 me-1 text-center"
+            class="wa-button w-100 me-1"
             href="https://wa.me/5511999998888?text=Olá%2C+gostaria+de+iniciar+um+atendimento+jurídico"
             target="_blank"
             rel="noopener"
-            aria-label="Iniciar atendimento via WhatsApp"
           >💬 Iniciar Atendimento</a>
           <a
-            class="wa-button w-100 ms-1 text-center"
+            class="wa-button w-100 ms-1"
             href="https://wa.me/5511999998888?text=Olá%2C+gostaria+de+falar+com+um+advogado+especializado+em+família"
             target="_blank"
             rel="noopener"
-            aria-label="Falar com especialista em família via WhatsApp"
           >👨‍⚖️ Especialista Família</a>
         </div>
       </form>
@@ -345,40 +220,31 @@
     const digitando = document.getElementById("digitando");
     const chat = document.getElementById("chat");
 
-    // Abre o chat e esconde o botão
+    // Abrir o chat
     chatBtn.addEventListener("click", () => {
-      chatContainer.style.display = "flex";
-      chatContainer.setAttribute("aria-hidden", "false");
+      chatContainer.classList.add("show");
       chatBtn.style.display = "none";
 
-      // foco no input após abrir
       setTimeout(() => input.focus(), 300);
 
-      // Se chat estiver vazio, insere mensagem inicial
       if (chat.children.length === 0) {
         setTimeout(() => {
           adicionarMensagem(
-            "Olá! Sou o assistente jurídico do Dr. Legal. Posso te ajudar com dúvidas sobre divórcio, trabalho, acidentes, família e mais. Como posso ajudar?",
+            "Olá! Sou o assistente jurídico do Dr. Legal. Posso te ajudar com dúvidas sobre divórcio, trabalho, família e mais. Como posso ajudar?",
             "ia"
           );
         }, 500);
       }
     });
 
-    // Fecha o chat e mostra o botão
+    // Fechar o chat
     closeChat.addEventListener("click", () => {
+      chatContainer.classList.remove("show");
       chatContainer.style.display = "none";
-      chatContainer.setAttribute("aria-hidden", "true");
       chatBtn.style.display = "flex";
     });
 
-    closeChat.addEventListener("keypress", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        closeChat.click();
-      }
-    });
-
+    // Enviar mensagem
     function enviar() {
       const pergunta = input.value.trim();
       if (!pergunta) return;
@@ -410,6 +276,7 @@
         });
     }
 
+    // Adiciona mensagem ao chat
     function adicionarMensagem(texto, classe) {
       const div = document.createElement("div");
       div.className = `msg ${classe}`;
