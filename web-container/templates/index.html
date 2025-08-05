@@ -465,8 +465,10 @@
       <p class="text-center mt-4">&copy; 2025 Dr. Legal & Advogados. Todos os direitos reservados.</p>
     </div>
   </footer>
-  <!-- Bootstrap JS -->
+
+  <!-- Bootstrap JS e Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
   <script>
     // Garante que o botão de chat apareça ao carregar
     document.addEventListener("DOMContentLoaded", () => {
@@ -478,6 +480,7 @@
     const chatBtn = document.getElementById('chatBtn');
     const chatContainer = document.getElementById('chatContainer');
     const closeChat = document.getElementById('closeChat');
+    const chatForm = document.getElementById('chatForm');
     const chatInput = document.getElementById('chatInput');
     const chatBody = document.getElementById('chatBody');
     const digitando = document.getElementById('digitando');
@@ -510,8 +513,8 @@
       }
     });
 
-    // Função de envio de mensagem (simulada)
-    function enviarMensagem(msg) {
+    // Função de envio de mensagem com comunicação ao Flask
+    async function enviarMensagem(msg) {
       // Mensagem do usuário
       const userMsg = document.createElement('div');
       userMsg.classList.add('msg', 'voce');
@@ -522,15 +525,38 @@
       digitando.style.display = 'block';
       chatBody.scrollTop = chatBody.scrollHeight;
 
-      // Resposta da IA após 1.5s
-      setTimeout(() => {
+      try {
+        const response = await fetch('http://localhost:5000/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ pergunta: msg })
+        });
+
+        const data = await response.json();
+
+        // Esconde "digitando"
+        digitando.style.display = 'none';
+
+        // Cria mensagem da IA
+        const iaMsg = document.createElement('div');
+        iaMsg.classList.add('msg', 'ia');
+        iaMsg.innerHTML = data.resposta; // Permite HTML (como links)
+        chatBody.insertBefore(iaMsg, digitando);
+      } catch (error) {
+        console.error('Erro ao conectar ao assistente:', error);
         digitando.style.display = 'none';
         const iaMsg = document.createElement('div');
         iaMsg.classList.add('msg', 'ia');
-        iaMsg.textContent = `Obrigado pela sua mensagem! Um advogado entrará em contato em breve.`;
+        iaMsg.innerHTML = `
+          Não foi possível conectar ao assistente.<br>
+          Tente novamente mais tarde.
+        `;
         chatBody.insertBefore(iaMsg, digitando);
-        chatBody.scrollTop = chatBody.scrollHeight;
-      }, 1500);
+      }
+
+      chatBody.scrollTop = chatBody.scrollHeight;
     }
   </script>
 </body>
