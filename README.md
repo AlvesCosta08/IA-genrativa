@@ -1,72 +1,81 @@
 📄 Dr. Legal & Advogados – Assistente Jurídico Virtual
-Um sistema completo de atendimento jurídico automatizado com chatbot, IA local e integração web.
-Desenvolvido com Flask, Ollama e Docker para privacidade, desempenho e conversão. 
+Sistema completo de atendimento jurídico automatizado com IA local, chatbot inteligente e conversão direta via WhatsApp.
+Desenvolvido com Flask, Ollama e Docker para garantir privacidade, desempenho e escalabilidade. 
 
 🌟 Visão Geral
-O Dr. Legal & Advogados é um site institucional com um assistente jurídico virtual inteligente, capaz de:
+O Dr. Legal & Advogados é uma solução moderna e eficaz para escritórios de advocacia que desejam:
 
-Entender dúvidas jurídicas em linguagem natural.
-Responder com empatia e clareza.
-Detectar a área do direito mais adequada (Família, Trabalhista, Previdenciário, etc.).
-Direcionar o usuário para um advogado real via WhatsApp com mensagens personalizadas.
-Todo o processamento de IA é feito localmente com Ollama, garantindo privacidade e baixa latência.
+Oferecer atendimento 24h com um assistente jurídico virtual inteligente.
+Entender dúvidas em linguagem natural.
+Classificar automaticamente a área do direito mais adequada.
+Responder com empatia, clareza e tom humano.
+Gerar conversões por meio de CTAs personalizados e direcionamento direto ao WhatsApp.
+Todo o processamento de inteligência artificial é feito localmente com Ollama, sem dependência de APIs externas, garantindo:
+
+✅ Privacidade total
+✅ Conformidade com a LGPD
+✅ Baixa latência
+✅ Operação offline (sem envio de dados)
 
 🔧 Arquitetura do Sistema
-O sistema é composto por dois serviços Docker:
+O sistema é composto por dois serviços containerizados, orquestrados com Docker Compose:
 
 ollama
-Ollama + Ubuntu
+Ubuntu + Ollama
 Executa modelos de IA localmente (ex:
 tinyllama
 )
 web
-Flask + Python
-Backend do chatbot e frontend do site
+Python + Flask
+Backend, frontend e API de comunicação
 
-Eles são orquestrados com Docker Compose, garantindo fácil implantação.
+A arquitetura permite fácil implantação, manutenção e escalabilidade.
 
+📦 Estrutura de Projetos
 
-projeto/
+´´´
+dr-legal-advogados/
 │
-├── ollama-container/
-│   ├── Dockerfile         # ✔️ (já existente)
-│   └── start.sh           # ✔️ (já existente)
+├── ollama-container/               # Serviço de IA local
+│   ├── Dockerfile                  # Imagem base: Ubuntu 22.04 + Ollama
+│   └── start.sh                    # Inicialização e download do modelo
 │
-├── web-container/
-│   ├── Dockerfile         # ✅ 
-│   ├── app.py             # ✔️ (backend Flask)
-│   ├── requirements.txt   # ✔️ (com flask e requests)
+├── web-container/                  # Serviço web (Flask)
+│   ├── Dockerfile                  # Imagem: Python 3.10-slim
+│   ├── app.py                      # Backend com lógica de IA e CTA
+│   ├── requirements.txt            # Dependências: Flask, requests
 │   └── templates/
-│       └── index.html     # ✔️ (frontend completo com chatbot)
+│       └── index.html              # Frontend responsivo com chatbot
 │
-├── docker-compose.yml     # ✔️ (orquestração dos serviços)
-└── README.md              # ✔️ (documentação completa)
-
-
+├── docker-compose.yml              # Orquestração dos serviços
+└── README.md                       # Este arquivo
 ⚙️ Serviço 1: ollama-container (IA Local)
+Dockerfile
+
+
 
 FROM ubuntu:22.04
 
-# Evita perguntas durante instalação
+# Evita interações durante instalação de pacotes
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Instala curl e wget
+# Instala dependências básicas
 RUN apt update && \
     apt install -y curl wget sudo && \
     rm -rf /var/lib/apt/lists/*
 
-# Instala o Ollama
+# Instala o Ollama via script oficial
 RUN curl -fsSL https://ollama.com/install.sh | sh
 
-# Cria usuário ollama
+# Cria usuário dedicado
 RUN useradd -m -s /bin/bash ollama && \
     usermod -aG ollama ollama && \
     echo "ollama ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# Permite acesso externo
+# Permite acesso externo à API
 ENV OLLAMA_HOST=0.0.0.0
 
-# Diretório do Ollama
+# Diretório persistente para modelos
 VOLUME ["/root/.ollama"]
 
 # Porta da API
@@ -76,229 +85,37 @@ EXPOSE 11434
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-# Inicia o Ollama
-CMD ["/start.sh"]
-
-
-#!/bin/bash
-echo "🚀 Iniciando Ollama..."
-ollama serve &
-
-sleep 10
-
-echo "📥 Baixando modelo ultra leve: tinyllama:1.1b"
-ollama pull tinyllama:1.1b
-
-echo "✅ Modelo pronto!"
-wait
-
-O que faz?
-Instala o Ollama no Ubuntu.
-Inicia o servidor ollama serve.
-Baixa automaticamente o modelo leve TinyLlama (1.1B) para inferência local.
-Expõe a API em http://localhost:11434.
-Usa volume Docker para não baixar o modelo novamente em reinicializações.
-✅ O script oficial do Ollama detecta automaticamente GPU (NVIDIA/AMD) e instala drivers se necessário. 
-
-
-FROM python:3.10-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-EXPOSE 5000
-
-CMD ["python", "app.py"]
-
-profile
-Qwen3-235B-A22B-2507
-8:42 pm
-Claro! Abaixo está o conteúdo completo do README.md em um único arquivo, com todas as informações integradas: código, arquitetura, funcionalidades, frontend, backend, Docker, IA local, conversão e muito mais. Você pode copiar e salvar como README.md.
-
-📄 Dr. Legal & Advogados – Assistente Jurídico Virtual
-Um sistema completo de atendimento jurídico automatizado com chatbot, IA local e integração web.
-Desenvolvido com Flask, Ollama e Docker para privacidade, desempenho e conversão. 
-
-🌟 Visão Geral
-O Dr. Legal & Advogados é um site institucional com um assistente jurídico virtual inteligente, capaz de:
-
-Entender dúvidas jurídicas em linguagem natural.
-Responder com empatia e clareza.
-Detectar a área do direito mais adequada (Família, Trabalhista, Previdenciário, etc.).
-Direcionar o usuário para um advogado real via WhatsApp com mensagens personalizadas.
-Todo o processamento de IA é feito localmente com Ollama, garantindo privacidade, conformidade com a LGPD e baixa latência.
-
-🔧 Arquitetura do Sistema
-O sistema é composto por dois serviços Docker:
-
-ollama
-Ollama + Ubuntu
-Executa modelos de IA localmente (ex:
-tinyllama
-)
-web
-Flask + Python
-Backend do chatbot e frontend do site
-
-Eles são orquestrados com Docker Compose, garantindo fácil implantação e escalabilidade.
-
-📦 Estrutura de Pastas
-
-
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-projeto/
-│
-├── ollama-container/
-│   ├── Dockerfile         # Cria o container do Ollama
-│   └── start.sh           # Inicia o Ollama e baixa o modelo
-│
-├── web-container/
-│   ├── app.py             # Backend Flask do chatbot
-│   ├── requirements.txt   # Dependências Python
-│   └── templates/
-│       └── index.html     # Frontend do site
-│
-├── docker-compose.yml     # Orquestração dos serviços
-└── README.md              # Este arquivo
-⚙️ Serviço 1: ollama-container (IA Local)
-Dockerfile
-Dockerfile
-
-
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-FROM ubuntu:22.04
-
-# Evita perguntas durante instalação
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Instala curl e wget
-RUN apt update && \
-    apt install -y curl wget sudo && \
-    rm -rf /var/lib/apt/lists/*
-
-# Instala o Ollama
-RUN curl -fsSL https://ollama.com/install.sh | sh
-
-# Cria usuário ollama
-RUN useradd -m -s /bin/bash ollama && \
-    usermod -aG ollama ollama && \
-    echo "ollama ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-# Permite acesso externo
-ENV OLLAMA_HOST=0.0.0.0
-
-# Diretório do Ollama
-VOLUME ["/root/.ollama"]
-
-# Porta da API
-EXPOSE 11434
-
-# Script de inicialização
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-# Inicia o Ollama
+# Inicia o serviço
 CMD ["/start.sh"]
 start.sh
 bash
 
 
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
+
 #!/bin/bash
 echo "🚀 Iniciando Ollama..."
 ollama serve &
 
 sleep 10
 
-echo "📥 Baixando modelo ultra leve: tinyllama:1.1b"
+echo "📥 Baixando modelo leve: tinyllama:1.1b"
 ollama pull tinyllama:1.1b
 
 echo "✅ Modelo pronto!"
 wait
-🔍 O que faz?
-Instala o Ollama no Ubuntu.
-Inicia o servidor ollama serve.
-Baixa automaticamente o modelo leve TinyLlama (1.1B) para inferência local.
+🔍 Funcionalidades
+Instala e configura o Ollama em ambiente Ubuntu.
+Inicia o servidor ollama serve em segundo plano.
+Baixa automaticamente o modelo tinyllama:1.1b para inferência local.
 Expõe a API em http://localhost:11434.
-Usa volume Docker para não baixar o modelo novamente em reinicializações.
-✅ O script oficial do Ollama detecta automaticamente GPU (NVIDIA/AMD) e instala drivers se necessário. 
-
+Persiste modelos com volume Docker (ollama_data), evitando downloads repetidos.
+Compatível com GPU (NVIDIA/AMD) — o script oficial instala drivers se necessário.
 🌐 Serviço 2: web-container (Backend + Frontend)
 Dockerfile
 Dockerfile
 
 
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
+
 FROM python:3.10-slim
 
 WORKDIR /app
@@ -315,324 +132,21 @@ requirements.txt
 txt
 
 
-1
-2
 flask
 requests
 app.py – Backend Flask
-Este script:
-
-Detecta temas jurídicos com base em palavras-chave (ex: "divórcio", "FGTS", "aposentadoria").
-Classifica a área do direito mais relevante.
-Consulta o modelo local tinyllama via API do Ollama.
-Gera respostas humanizadas com chamadas para ação (CTA).
-Insere botões do WhatsApp para conversão.
-Redireciona sempre para contato humano – nunca diz "não posso ajudar".
-Exemplo de CTA gerado:
-
-<a href="https://wa.me/551199887766?text=Quero+falar+sobre+divórcio">
-  📞 Falar com especialista em Direito de Família
-</a>
-
-💬 Funcionalidades do Chatbot (app.py)
-O backend app.py possui múltiplas camadas de inteligência:
+O backend implementa uma camada inteligente de triagem jurídica, com:
 
 1. Detecção de Intenção
 Saudações, despedidas, contato, horários, honorários.
-Temas comuns como "divórcio", "acidente", "golpe no PIX".
-Benefícios previdenciários com respostas específicas.
-2. Palavras-Chave por Área
+Temas comuns: "divórcio", "acidente", "golpe no PIX", "aposentadoria".
+2. Classificação por Área do Direito
+Utiliza dicionário de palavras-chave para mapear perguntas a especialidades:
 
-
-3. IA com Foco em Conversão
-Prompt otimizado para empathia e ação.
-Nunca responde como robô.
-Sempre termina com CTA para WhatsApp.
-4. Redirecionamento Garantido
-Mesmo se a IA falhar, o usuário é direcionado ao WhatsApp.
-Nenhum caso é perdido.
-🖥️ Frontend (index.html)
-Características
-Design moderno com Bootstrap 5 e Font Awesome.
-Tipografia elegante com Google Fonts (Inter + Playfair Display).
-Chatbot fixo no canto inferior direito com animação de pulsação.
-Totalmente responsivo (móvel e desktop).
-Recursos do Chat
-Abre com clique no botão flutuante.
-Interface limpa com mensagens do usuário (azul) e IA (cinza).
-Mostra "digitando..." enquanto aguarda resposta.
-Envia mensagem com Enter.
-Comunicação com Backend
-
-fetch('http://localhost:5000/chat', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ pergunta: msg })
-})
-
-🐳 Docker Compose
-docker-compose.yml
-
-services:
-  ollama:
-    build: ./ollama-container
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-
-  web:
-    build: ./web-container
-    ports:
-      - "5000:5000"
-    depends_on:
-      - ollama
-
-volumes:
-  ollama_data:
-
-  profile
-Qwen3-235B-A22B-2507
-8:42 pm
-Claro! Abaixo está o conteúdo completo do README.md em um único arquivo, com todas as informações integradas: código, arquitetura, funcionalidades, frontend, backend, Docker, IA local, conversão e muito mais. Você pode copiar e salvar como README.md.
-
-📄 Dr. Legal & Advogados – Assistente Jurídico Virtual
-Um sistema completo de atendimento jurídico automatizado com chatbot, IA local e integração web.
-Desenvolvido com Flask, Ollama e Docker para privacidade, desempenho e conversão. 
-
-🌟 Visão Geral
-O Dr. Legal & Advogados é um site institucional com um assistente jurídico virtual inteligente, capaz de:
-
-Entender dúvidas jurídicas em linguagem natural.
-Responder com empatia e clareza.
-Detectar a área do direito mais adequada (Família, Trabalhista, Previdenciário, etc.).
-Direcionar o usuário para um advogado real via WhatsApp com mensagens personalizadas.
-Todo o processamento de IA é feito localmente com Ollama, garantindo privacidade, conformidade com a LGPD e baixa latência.
-
-🔧 Arquitetura do Sistema
-O sistema é composto por dois serviços Docker:
-
-ollama
-Ollama + Ubuntu
-Executa modelos de IA localmente (ex:
-tinyllama
-)
-web
-Flask + Python
-Backend do chatbot e frontend do site
-
-Eles são orquestrados com Docker Compose, garantindo fácil implantação e escalabilidade.
-
-📦 Estrutura de Pastas
-
-
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-projeto/
-│
-├── ollama-container/
-│   ├── Dockerfile         # Cria o container do Ollama
-│   └── start.sh           # Inicia o Ollama e baixa o modelo
-│
-├── web-container/
-│   ├── app.py             # Backend Flask do chatbot
-│   ├── requirements.txt   # Dependências Python
-│   └── templates/
-│       └── index.html     # Frontend do site
-│
-├── docker-compose.yml     # Orquestração dos serviços
-└── README.md              # Este arquivo
-⚙️ Serviço 1: ollama-container (IA Local)
-Dockerfile
-Dockerfile
-
-
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-FROM ubuntu:22.04
-
-# Evita perguntas durante instalação
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Instala curl e wget
-RUN apt update && \
-    apt install -y curl wget sudo && \
-    rm -rf /var/lib/apt/lists/*
-
-# Instala o Ollama
-RUN curl -fsSL https://ollama.com/install.sh | sh
-
-# Cria usuário ollama
-RUN useradd -m -s /bin/bash ollama && \
-    usermod -aG ollama ollama && \
-    echo "ollama ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-# Permite acesso externo
-ENV OLLAMA_HOST=0.0.0.0
-
-# Diretório do Ollama
-VOLUME ["/root/.ollama"]
-
-# Porta da API
-EXPOSE 11434
-
-# Script de inicialização
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-# Inicia o Ollama
-CMD ["/start.sh"]
-start.sh
-bash
-
-
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-#!/bin/bash
-echo "🚀 Iniciando Ollama..."
-ollama serve &
-
-sleep 10
-
-echo "📥 Baixando modelo ultra leve: tinyllama:1.1b"
-ollama pull tinyllama:1.1b
-
-echo "✅ Modelo pronto!"
-wait
-🔍 O que faz?
-Instala o Ollama no Ubuntu.
-Inicia o servidor ollama serve.
-Baixa automaticamente o modelo leve TinyLlama (1.1B) para inferência local.
-Expõe a API em http://localhost:11434.
-Usa volume Docker para não baixar o modelo novamente em reinicializações.
-✅ O script oficial do Ollama detecta automaticamente GPU (NVIDIA/AMD) e instala drivers se necessário. 
-
-🌐 Serviço 2: web-container (Backend + Frontend)
-Dockerfile
-Dockerfile
-
-
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-FROM python:3.10-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-EXPOSE 5000
-
-CMD ["python", "app.py"]
-requirements.txt
-txt
-
-
-1
-2
-flask
-requests
-app.py – Backend Flask
-Este script:
-
-Detecta temas jurídicos com base em palavras-chave (ex: "divórcio", "FGTS", "aposentadoria").
-Classifica a área do direito mais relevante.
-Consulta o modelo local tinyllama via API do Ollama.
-Gera respostas humanizadas com chamadas para ação (CTA).
-Insere botões do WhatsApp para conversão.
-Redireciona sempre para contato humano – nunca diz "não posso ajudar".
-Exemplo de CTA gerado:
-html
-
-
-1
-2
-3
-⌄
-<a href="https://wa.me/551199887766?text=Quero+falar+sobre+divórcio">
-  📞 Falar com especialista em Direito de Família
-</a>
-💬 Funcionalidades do Chatbot (app.py)
-O backend app.py possui múltiplas camadas de inteligência:
-
-1. Detecção de Intenção
-Saudações, despedidas, contato, horários, honorários.
-Temas comuns como "divórcio", "acidente", "golpe no PIX".
-Benefícios previdenciários com respostas específicas.
-2. Palavras-Chave por Área
 python
 
 
-1
-2
-3
-4
-5
-6
+
 ⌄
 PALAVRAS_JURIDICAS = {
     "Direito de Família": ["divórcio", "guarda", "pensão", ...],
@@ -640,33 +154,37 @@ PALAVRAS_JURIDICAS = {
     "Direito Previdenciário": ["aposentadoria", "auxílio-doença", ...],
     # + outras áreas
 }
-3. IA com Foco em Conversão
-Prompt otimizado para empathia e ação.
-Nunca responde como robô.
-Sempre termina com CTA para WhatsApp.
-4. Redirecionamento Garantido
-Mesmo se a IA falhar, o usuário é direcionado ao WhatsApp.
+3. Integração com IA Local
+Consulta o modelo via API do Ollama com prompt otimizado para:
+
+Linguagem humana e empática.
+Respostas curtas (máx. 2 frases).
+Foco em conversão, nunca em automação total.
+4. Geração de CTA (Call to Action)
+Sempre termina com botão do WhatsApp, personalizado por área:
+
+⌄
+<a href="https://wa.me/551199887766?text=Quero+falar+sobre+divórcio">
+  📞 Falar com especialista em Direito de Família
+</a>
+5. Redirecionamento Garantido
+Mesmo em falhas da IA, o usuário é direcionado ao WhatsApp.
 Nenhum caso é perdido.
 🖥️ Frontend (index.html)
-Características
-Design moderno com Bootstrap 5 e Font Awesome.
-Tipografia elegante com Google Fonts (Inter + Playfair Display).
-Chatbot fixo no canto inferior direito com animação de pulsação.
-Totalmente responsivo (móvel e desktop).
-Recursos do Chat
-Abre com clique no botão flutuante.
-Interface limpa com mensagens do usuário (azul) e IA (cinza).
-Mostra "digitando..." enquanto aguarda resposta.
-Envia mensagem com Enter.
+Características Técnicas
+Design responsivo com Bootstrap 5.3.
+Tipografia elegante usando Google Fonts (Inter + Playfair Display).
+Chatbot flutuante com animação de pulsação (CSS + JavaScript).
+Totalmente acessível e compatível com dispositivos móveis.
+Funcionalidades do Chat
+Abre com clique no botão fixo (canto inferior direito).
+Interface com mensagens do usuário (azul) e IA (cinza).
+Mostra "digitando..." durante processamento.
+Envio com Enter.
+Comunicação via fetch com o backend Flask.
 Comunicação com Backend
 javascript
 
-
-1
-2
-3
-4
-5
 ⌄
 fetch('http://localhost:5000/chat', {
   method: 'POST',
@@ -678,31 +196,6 @@ docker-compose.yml
 yaml
 
 
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-⌄
-⌄
-⌄
-⌄
-⌄
-⌄
-⌄
-⌄
 services:
   ollama:
     build: ./ollama-container
@@ -720,48 +213,60 @@ services:
 
 volumes:
   ollama_data:
-Funcionalidades:
-O serviço web só inicia após o ollama estar pronto.
-Dados do Ollama são persistidos no volume ollama_data.
-Portas expostas: 5000 (site) e 11434 (API da IA).
+Recursos de Orquestração
+O serviço web inicia apenas após ollama estar ativo.
+Volume ollama_data garante persistência dos modelos.
+Portas expostas:
+5000: site e API Flask
+11434: API do Ollama
 🚀 Como Executar
-Clone o repositório
-Certifique-se de ter Docker e Docker Compose instalados
-Execute:
+Clone o repositório:
+bash
 
+
+1
+git clone https://github.com/seu-usuario/dr-legal-advogados.git
+Certifique-se de ter Docker e Docker Compose instalados.
+Suba os serviços:
+bash
+
+
+1
 docker-compose up --build
-
 Acesse:
 Site: http://localhost:5000
 API da IA: http://localhost:11434
-💡 Recursos de Conversão
-O sistema foi projetado para maximizar conversões:
+💡 Estratégia de Conversão
+O sistema foi projetado para maximizar conversões com:
 
 Primeira consulta gratuita
 Reduz barreira inicial
 Botões do WhatsApp
-Conversão direta
+Conversão direta e imediata
 CTAs personalizados por área
-Maior relevância
+Maior relevância e conversão
 Plantão 24h
-Urgência
+Atrai casos urgentes
 Respostas curtas e humanas
 Clareza e empatia
-Redirecionamento para humano
-Nenhum caso perdido
+Redirecionamento garantido
+Nenhum lead perdido
 
-🛡️ Privacidade e Segurança
+🛡️ Privacidade e Conformidade
 Nenhum dado do usuário é armazenado.
-Toda IA roda localmente (sem envio a nuvens como OpenAI).
+Toda IA roda localmente — sem envio a OpenAI, Gemini ou outras nuvens.
 Sem cookies de rastreamento.
-Ideal para advocacia: cumple LGPD e ética profissional.
+Totalmente compatível com:
+LGPD
+Código de Ética da Advocacia
+Normas de proteção de dados sensíveis
 🧠 Modelo de IA Utilizado
 tinyllama:1.1b
-Pequeno, rápido e eficiente.
-Roda bem em CPU (ideal para produção).
+Modelo leve, rápido e eficiente.
+Adequado para inferência em CPU.
 Treinado em linguagem natural.
-Adaptado via prompt para responder como um advogado empático.
-✅ Futuramente pode ser substituído por modelos maiores como llama3, phi3 ou gemma com melhor desempenho. 
+Adaptado via prompt para responder como um advogado empático e direto.
+✅ Futuramente pode ser substituído por modelos mais robustos como llama3, phi3 ou gemma para maior precisão. 
 
 📈 Fluxo de Atendimento
 Usuário digita: "Caí em golpe no PIX, o que fazer?"
@@ -771,16 +276,33 @@ Gera resposta com CTA:
 "Se você foi enganado no PIX, podemos tentar recuperar seu dinheiro.
 📞 Falar com especialista em Consumidor " 
 Usuário clica e conversa com advogado real.
-📞 Contato
-Este projeto foi desenvolvido para escritórios de advocacia que desejam:
-
+📊 Benefícios para Escritórios de Advocacia
 Atendimento 24h
-Redução de custos
+Captura leads fora do expediente
+Triagem automatizada
+Reduz tempo de análise inicial
 Aumento de conversão
-Entre em contato:
+Mais contatos convertidos em clientes
+Redução de custos
+Menos atendentes humanos necessários
+Imagem moderna
+Transmite inovação e confiança
+
+📞 Contato
+Este projeto foi desenvolvido para escritórios de advocacia que desejam modernizar seu atendimento com tecnologia segura e eficaz.
+
+Entre em contato para implantação personalizada:
+
 📧 contato@drlegal.com.br
-📞 (11) 99999-9999
+📞 (11) 99887-7766
 
 📄 Licença
-Este projeto é um exemplo educacional.
-Você pode adaptá-lo livremente para uso comercial ou institucional.
+Este projeto é fornecido como exemplo educacional e de referência.
+Você tem permissão para:
+
+Adaptar para uso comercial
+Personalizar para seu escritório
+Distribuir com atribuição
+Não inclui suporte oficial. 
+
+Dr. Legal & Advogados – Justiça Acessível, com Tecnologia e Humanidade. ⚖️💙 
